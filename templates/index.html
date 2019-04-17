@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>First page</title>
+</head>
+<body>
+    <h1>First Page </h1>
+</body>
+</html>
+from flask import Flask
+from flask import Flask,request,render_template,session,redirect,flash,abort
+import sqlite3
+import os
+db = sqlite3.connect('stroemanagement.db')
+data = db.execute('select uname,password from users')
+
+
+a=Flask(__name__)
+
+
+
+@a.route('/')
+def home():
+    if not session.get('logged_in '):
+        return render_template('login.html')
+    else:
+        return 'you have logged in  <h2><a href="/logout">Log out </a></h2>'
+
+
+@a.route('/login', methods=['POST'])
+def login():
+    for usr in data:
+        if request.form['username'] == usr[0] and request.form['password'] == usr[1] :
+            session['logged_in '] = True
+    if not session['logged_in']:
+        flash('wrong username or password')
+    return home()
+
+
+@a.route('/logout')
+def logout():
+    session['logged_in'] = False
+    return home()
+
+
+if __name__ == "__main__":
+    a.secret_key = os.urandom(12)
+    a.run(debug=True, port=4000)
